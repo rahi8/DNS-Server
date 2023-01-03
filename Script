@@ -1,0 +1,63 @@
+Setup Custom DNS Server/DNS Forwarder on on-premises
+ We will set up a Hosted Zone file: "onprem.com" on the Custom DNS server
+
+ We have created two A record (app.onprem.com and onprem.com; pointing to IP Address 20.20.20.20)
+
+ Login to the EC2 server that would be configured as Custom DNS server and run the commands.
+
+1) yum install bind bind-utils –y # As we have a Internet route via NAT Gateway, we can install the Package
+2) touch /etc/named.conf
+    nano /etc/named.conf 
+    
+    
+options { 
+  directory "/var/named"; 
+  dump-file "/var/named/data/cache_dump.db"; 
+  statistics-file "/var/named/data/named_stats.txt"; 
+  memstatistics-file "/var/named/data/named_mem_stats.txt"; 
+  allow-query { any; }; 
+  allow-transfer     { localhost; 192.168.20.208; }; 
+  recursion yes; 
+  forward first; 
+  forwarders { 
+    192.168.0.2; 
+  }; 
+  dnssec-enable yes; 
+  dnssec-validation yes; 
+  dnssec-lookaside auto; 
+  /* Path to ISC DLV key */ 
+  bindkeys-file "/etc/named.iscdlv.key"; 
+  managed-keys-directory "/var/named/dynamic"; 
+}; 
+zone "onprem.com" IN { 
+    type master; 
+    file "onprem.com.zone"; 
+    allow-update { none; }; 
+}; 
+
+3) touch /var/named/onprem.com.zone 
+    nano /var/named/onprem.com.zone 
+    
+    
+OutPut
+--------------------
+$TTL 86400 
+@  IN  SOA     ns1.onprem.com. root.onprem.com. ( 
+       2013042201  ;Serial 
+       3600        ;Refresh 
+       1800        ;Retry 
+       604800      ;Expire 
+       3600       ;Minimum TTL 
+) 
+; Specify our two nameservers 
+   IN  NS    dnsA.onprem.com. 
+   IN  NS    dnsB.onprem.com. 
+; Resolve nameserver hostnames to IP, replace with your two droplet IP addresses. 
+dnsA   IN  A   1.1.1.1 
+dnsB   IN  A   8.8.8.8 
+; Define hostname -> IP pairs which you wish to resolve 
+@    IN A   20.20.20.20 
+app  IN A   20.20.20.20 
+
+4) Restart DNS service 
+service named restart   (After every change, use this command) 
