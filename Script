@@ -1,9 +1,5 @@
-Setup Custom DNS Server/DNS Forwarder on on-premises
+ Setup Custom DNS Server/DNS Forwarder on on-premises
  We will set up a Hosted Zone file: "onprem.com" on the Custom DNS server
-
- We have created two A record 
- app.onprem.com : 20.20.20.20
- onprem.com : 20.20.20.20
 
  Login to the EC2 server that would be configured as Custom DNS server and run the commands.
 
@@ -60,6 +56,9 @@ dnsB   IN  A   8.8.8.8
 ; Define hostname -> IP pairs which you wish to resolve 
 @    IN A   20.20.20.20 
 app  IN A   20.20.20.20 
+public IN A 13.41.231.148
+private IN A  10.200.0.25
+
 
 4) Restart DNS service 
 service named restart   (After every change, use this command) 
